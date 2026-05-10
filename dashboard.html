@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Facilitator — Business Wargaming Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-base:      #0d1117;
+    --bg-surface:   #161b27;
+    --bg-raised:    #1e2535;
+    --bg-elevated:  #252d40;
+    --border:       #2a3348;
+    --border-light: #344060;
+    --text-primary:   #e8edf5;
+    --text-secondary: #8b97b0;
+    --text-muted:     #5a6780;
+    --accent-blue:  #3b82f6;
+    --accent-blue-dim: #1d3a6e;
+    --green:        #22c55e;
+    --green-dim:    #14532d;
+    --amber:        #f59e0b;
+    --amber-dim:    #451a03;
+    --red:          #ef4444;
+    --red-dim:      #450a0a;
+    --purple:       #a855f7;
+    --cyan:         #06b6d4;
+    --font: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  html, body {
+    height: 100%;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Top Bar ─────────────────────────────────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+  }
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--purple));
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .topbar-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  .session-badge {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+  .live-dot {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+  }
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .btn-primary {
+    background: var(--accent-blue);
+    border: none;
+    color: #fff;
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: var(--font);
+  }
+
+  /* ── Layout ──────────────────────────────────────────── */
+  .layout {
+    display: flex;
+    height: calc(100vh - 52px);
+  }
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+  .sidebar {
+    width: 256px;
+    min-width: 256px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    padding: 18px 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .upload-zone {
+    background: var(--bg-raised);
+    border: 1.5px dashed var(--border-light);
+    border-radius: 8px;
+    padding: 14px 12px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    margin-bottom: 12px;
+  }
+  .upload-zone-icon {
+    font-size: 18px;
+    margin-bottom: 4px;
+    opacity: 0.6;
+  }
+  .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-raised);
+    border-radius: 7px;
+    border: 1px solid var(--border);
+  }
+  .doc-icon {
+    width: 28px;
+    height-28px;
+    height: 28px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .doc-info { flex: 1; min-width: 0; }
+  .doc-name { font-size: 12.5px; font-weight: 500; color: var(--text-primary); }
+  .doc-sub  { font-size: 10.5px; color: var(--text-muted); }
+  .doc-check {
+    width: 18px;
+    height: 18px;
+    background: var(--green-dim);
+    border: 1px solid var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  .doc-vw   { background: #1a2a4a; color: #60a5fa; }
+  .doc-tesla { background: #2d1a1a; color: #f87171; }
+  .doc-byd  { background: #1a2d1a; color: #4ade80; }
+  .doc-nio  { background: #2d2a1a; color: #fbbf24; }
+  .doc-toyota { background: #2a1a2d; color: #c084fc; }
+
+  .run-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 0 16px rgba(59,130,246,0.25);
+    margin-top: 14px;
+  }
+  .run-btn-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #93c5fd;
+    box-shadow: 0 0 6px #93c5fd;
+  }
+
+  .sidebar-info {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .info-key { color: var(--text-muted); }
+  .info-val { color: var(--text-primary); font-weight: 500; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  .badge-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid #166534; }
+  .badge-amber  { background: var(--amber-dim);  color: var(--amber);  border: 1px solid #78350f; }
+  .badge-red    { background: var(--red-dim);    color: var(--red);    border: 1px solid #7f1d1d; }
+  .badge-blue   { background: var(--accent-blue-dim); color: #93c5fd; border: 1px solid #1e3a8a; }
+
+  .sidebar-modules {
+    padding: 14px 16px;
+  }
+  .module-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    margin-bottom: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+  .module-item.active {
+    background: var(--accent-blue-dim);
+    color: #93c5fd;
+  }
+  .module-icon { font-size: 13px; }
+
+  /* ── Main Content ────────────────────────────────────── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: var(--bg-base);
+  }
+
+  /* ── Panel Base ──────────────────────────────────────── */
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px 13px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-raised);
+  }
+  .panel-header-left { display: flex; align-items: center; gap: 10px; }
+  .panel-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .panel-body { padding: 18px; }
+
+  /* ── Panel 1 – Scenario ──────────────────────────────── */
+  .scenario-text {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .scenario-text strong { color: var(--text-primary); font-weight: 500; }
+
+  .drift-alert {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.4);
+    border-left: 3px solid var(--amber);
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .drift-icon {
+    font-size: 16px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .drift-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 3px;
+  }
+  .drift-text {
+    font-size: 12.5px;
+    color: #fde68a;
+    line-height: 1.5;
+  }
+  .drift-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .drift-chip {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(245,158,11,0.12);
+    border: 1px solid rgba(245,158,11,0.25);
+    color: #fcd34d;
+  }
+
+  /* ── Panel 2 – Convergence ───────────────────────────── */
+  .convergence-alert {
+    background: rgba(239,68,68,0.07);
+    border: 1.5px solid rgba(239,68,68,0.45);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .conv-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .critical-badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .conv-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #fca5a5;
+  }
+  .conv-body {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .conv-body strong { color: #fca5a5; font-weight: 500; }
+
+  .signal-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .signal-tag {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-light);
+    border-radius: 7px;
+    padding: 9px 13px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .signal-source {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .signal-text { font-size: 12px; color: var(--text-secondary); }
+  .source-env   { color: var(--amber); }
+  .source-grav  { color: var(--purple); }
+
+  /* ── Panel 3 – Neglect Map ───────────────────────────── */
+  .dim-table { width: 100%; border-collapse: collapse; }
+  .dim-table thead th {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 0 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .dim-table thead th:not(:first-child) { text-align: center; }
+  .dim-table tbody tr {
+    border-bottom: 1px solid rgba(42,51,72,0.6);
+  }
+  .dim-table tbody tr:last-child { border-bottom: none; }
+  .dim-table tbody td {
+    padding: 10px 0;
+    vertical-align: middle;
+  }
+  .dim-name {
+    font-size: 12.5px;
+    color: var(--text-primary);
+    font-weight: 500;
+    padding-right: 16px;
+  }
+  .dim-score {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    width: 60px;
+  }
+  .dim-bar-cell { width: 160px; padding: 0 12px; }
+  .dim-bar-bg {
+    height: 6px;
+    background: var(--bg-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .dim-bar-fill { height: 100%; border-radius: 3px; }
+  .dim-severity { text-align: center; width: 90px; }
+
+  .sev-red    { color: var(--red); }
+  .sev-amber  { color: var(--amber); }
+  .sev-green  { color: var(--green); }
+  .fill-red   { background: var(--red); }
+  .fill-amber { background: var(--amber); }
+  .fill-green { background: var(--green); }
+
+  .facilitator-note {
+    margin-top: 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    border-left: 3px solid var(--cyan);
+    border-radius: 7px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .note-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .note-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 2px;
+  }
+  .note-text { font-size: 12px; color: var(--text-secondary); }
+  .note-text strong { color: var(--text-primary); font-weight: 500; }
+
+  /* ── Scrollbar ───────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ TOP BAR ════════════════════ -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">⚡</div>
+    StratOS · AI Facilitator
+  </div>
+  <div class="topbar-meta">
+    <div class="session-badge">Session · Automotive Wargame — Round 2 of 4</div>
+    <div class="live-dot"><span class="dot"></span> Analysis Active</div>
+  </div>
+  <div class="topbar-actions">
+    <button class="btn-ghost">Export Report</button>
+    <button class="btn-ghost">Inject Event</button>
+    <button class="btn-primary">▶ Next Round</button>
+  </div>
+</header>
+
+<!-- ════════════════════ LAYOUT ════════════════════ -->
+<div class="layout">
+
+  <!-- ═══════ SIDEBAR ═══════ -->
+  <aside class="sidebar">
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Strategy Documents</div>
+
+      <div class="upload-zone">
+        <div class="upload-zone-icon">⬆</div>
+        Drop files or click to upload
+      </div>
+
+      <div class="doc-list">
+        <div class="doc-item">
+          <div class="doc-icon doc-vw">VW</div>
+          <div class="doc-info">
+            <div class="doc-name">Volkswagen Group</div>
+            <div class="doc-sub">Strategy Brief · 2026</div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc-tesla">TS</div>
+          <div class="doc-info">
+            <div class="doc-name">Tesla, Inc.</div>
+            <div class="doc-sub">Strategy Brief · 2026</div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc-byd">BY</div>
+          <div class="doc-info">
+            <div class="doc-name">BYD Auto</div>
+            <div class="doc-sub">Strategy Brief · 2026</div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc-nio">NI</div>
+          <div class="doc-info">
+            <div class="doc-name">NIO</div>
+            <div class="doc-sub">Strategy Brief · 2026</div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+        <div class="doc-item">
+          <div class="doc-icon doc-toyota">TY</div>
+          <div class="doc-info">
+            <div class="doc-name">Toyota Motor</div>
+            <div class="doc-sub">Strategy Brief · 2026</div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+      </div>
+
+      <button class="run-btn">
+        <span class="run-btn-dot"></span>
+        Run AI Analysis
+      </button>
+    </div>
+
+    <div class="sidebar-info">
+      <div class="sidebar-label">Session Parameters</div>
+      <div class="info-row">
+        <span class="info-key">Teams active</span>
+        <span class="info-val">5 / 5</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Current Round</span>
+        <span class="info-val">Round 2</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Scenario Track</span>
+        <span class="badge badge-blue">Software & Ecosystems</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">AI Status</span>
+        <span class="badge badge-green">Active</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Alerts Raised</span>
+        <span class="badge badge-red">3 Critical</span>
+      </div>
+    </div>
+
+    <div class="sidebar-modules">
+      <div class="sidebar-label">Analysis Modules</div>
+      <div class="module-item active">
+        <span class="module-icon">🌐</span> Dynamic Environment
+      </div>
+      <div class="module-item active">
+        <span class="module-icon">🧲</span> Competitive Gravity Map
+      </div>
+      <div class="module-item">
+        <span class="module-icon">📊</span> Team Move Tracker
+      </div>
+      <div class="module-item">
+        <span class="module-icon">⚖️</span> Strategic Balance Index
+      </div>
+      <div class="module-item">
+        <span class="module-icon">🎯</span> Intervention Planner
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════ MAIN ═══════ -->
+  <main class="main">
+
+    <!-- ── Panel 1: Scenario Update ── -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <span class="panel-tag">Dynamic Environment Update</span>
+          <span class="panel-title">Updated Scenario: Software &amp; Ecosystem Dominance</span>
+        </div>
+        <span class="badge badge-amber">⟳ Drift Detected</span>
+      </div>
+      <div class="panel-body">
+        <p class="scenario-text">
+          Regulators in <strong>Brussels</strong> have responded to the accelerating convergence of OEM platform strategies by fast-tracking a new <strong>digital markets investigation</strong> targeting both in-vehicle OS monopolisation and charging network exclusivity — the investigation is expected to conclude six months ahead of the previously modelled timeline.
+          Separately, three major OEMs announcing <strong>software joint ventures</strong> in the same week triggered an investor repricing event across the sector, compressing valuation multiples for hardware-centric incumbents by an average of 11%.
+          Consumer trust data from the <strong>EU Consumer Confidence Index (Q1 2026)</strong> shows brand sensitivity to AI safety incidents rising sharply, with 64% of surveyed buyers stating they would delay purchase following a publicly reported autonomous driving failure — up from 38% in 2024.
+          Meanwhile, <strong>China's MIIT</strong> has accelerated its Connected Vehicle Data Security framework, creating asymmetric compliance burdens for non-domestic players entering Tier 1 Chinese cities.
+          The combined effect is a scenario where <strong>regulatory sequencing and ecosystem positioning</strong> now materially outweigh product differentiation as the primary competitive lever through 2028.
+        </p>
+
+        <div class="drift-alert">
+          <div class="drift-icon">⚠</div>
+          <div>
+            <div class="drift-label">Scenario Drift Alert</div>
+            <div class="drift-text">
+              Regulatory velocity has exceeded the baseline model by ~2.4 standard deviations. The Brussels AV certification timeline and China data-security sequencing were not embedded in any team's Round 1 strategy. The live scenario has materially diverged from the pre-session brief.
+            </div>
+            <div class="drift-meta">
+              <span class="drift-chip">Regulatory Velocity +2.4σ</span>
+              <span class="drift-chip">Brussels AV Timeline Compression</span>
+              <span class="drift-chip">Consumer Trust Sensitivity ↑</span>
+              <span class="drift-chip">MIIT Compliance Asymmetry</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Panel 2: Convergence Alert ── -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <span class="panel-tag">Dynamic Environment + Gravity Map Combined Signal</span>
+          <span class="panel-title">Convergence Alert</span>
+        </div>
+        <span class="badge badge-red">● CRITICAL</span>
+      </div>
+      <div class="panel-body">
+
+        <div class="convergence-alert">
+          <div class="conv-header">
+            <span class="critical-badge">CRITICAL</span>
+            <span class="conv-title">Dual-Source Signal: Regulatory Sequencing Risk — Autonomous Vehicles, Europe</span>
+          </div>
+          <div class="conv-body">
+            Both the <strong>Dynamic Environment model</strong> and the <strong>Competitive Gravity Map</strong> have independently flagged the same strategic blind spot: <strong>regulatory sequencing risk around autonomous vehicle certification in Europe</strong> is being universally underweighted across all participating teams. The environment model has registered a sharp compression in the Brussels AV approval timeline, while the gravity map shows zero teams have stress-tested their strategies against a regulatory delay or block scenario. This convergence across two independent analytical systems elevates this signal to critical priority and warrants immediate facilitator intervention before Round 3 submissions are locked.
+          </div>
+        </div>
+
+        <div class="signal-tags">
+          <div class="signal-tag">
+            <div class="signal-source source-env">⬡ Dynamic Environment Signal</div>
+            <div class="signal-text">Brussels AV timeline compression — EC digital markets investigation accelerated by 6 months; type-approval sequencing now misaligned with most OEM go-to-market assumptions.</div>
+          </div>
+          <div class="signal-tag">
+            <div class="signal-source source-grav">◈ Gravity Map Signal</div>
+            <div class="signal-text">0 of 5 teams modeled a regulatory delay scenario — no team has allocated strategic resources or downside contingency to an AV certification block in any EU market.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Panel 3: Neglect Map ── -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <span class="panel-tag">Competitive Gravity Map Output</span>
+          <span class="panel-title">Dimension Neglect Map</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:11.5px;color:var(--text-muted);">5 teams · Round 2</span>
+          <span class="badge badge-red">3 Critical Gaps</span>
+        </div>
+      </div>
+      <div class="panel-body">
+
+        <table class="dim-table">
+          <thead>
+            <tr>
+              <th>Competitive Dimension</th>
+              <th>Teams Addressed</th>
+              <th class="dim-bar-cell" style="text-align:left;padding-left:12px;">Coverage</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="dim-name">Supply Chain Resilience</td>
+              <td class="dim-score sev-red">1 / 5</td>
+              <td class="dim-bar-cell">
+                <div class="dim-bar-bg">
+                  <div class="dim-bar-fill fill-red" style="width:20%;"></div>
+                </div>
+              </td>
+              <td class="dim-severity">
+                <span class="badge badge-red">Critical</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="dim-name">Regulatory Sequencing</td>
+              <td class="dim-score sev-red">0 / 5</td>
+              <td class="dim-bar-cell">
+                <div class="dim-bar-bg">
+                  <div class="dim-bar-fill fill-red" style="width:0%;"></div>
+                </div>
+              </td>
+              <td class="dim-severity">
+                <span class="badge badge-red">Critical</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="dim-name">Financial Stress Scenarios</td>
+              <td class="dim-score sev-amber">2 / 5</td>
+              <td class="dim-bar-cell">
+                <div class="dim-bar-bg">
+                  <div class="dim-bar-fill fill-amber" style="width:40%;"></div>
+                </div>
+              </td>
+              <td class="dim-severity">
+                <span class="badge badge-amber">Moderate</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="dim-name">Geopolitical Tariff Escalation</td>
+              <td class="dim-score sev-red">1 / 5</td>
+              <td class="dim-bar-cell">
+                <div class="dim-bar-bg">
+                  <div class="dim-bar-fill fill-red" style="width:20%;"></div>
+                </div>
+              </td>
+              <td class="dim-severity">
+                <span class="badge badge-red">Critical</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="dim-name">Brand Sentiment Volatility</td>
+              <td class="dim-score sev-amber">2 / 5</td>
+              <td class="dim-bar-cell">
+                <div class="dim-bar-bg">
+                  <div class="dim-bar-fill fill-amber" style="width:40%;"></div>
+                </div>
+              </td>
+              <td class="dim-severity">
+                <span class="badge badge-amber">Moderate</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="dim-name">Ecosystem Lock-in</td>
+              <td class="dim-score sev-green">4 / 5</td>
+              <td class="dim-bar-cell">
+                <div class="dim-bar-bg">
+                  <div class="dim-bar-fill fill-green" style="width:80%;"></div>
+                </div>
+              </td>
+              <td class="dim-severity">
+                <span class="badge badge-green">Good</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="facilitator-note">
+          <div class="note-icon">💡</div>
+          <div>
+            <div class="note-label">Facilitator Recommendation</div>
+            <div class="note-text">
+              <strong>Recommended intervention:</strong> inject a supply chain disruption event before Round 3 — specifically a rare-earth export restriction scenario affecting battery cell supply for EU-manufactured EVs. Pair with a regulatory delay card for Brussels AV certification to surface the sequencing risk identified in the Convergence Alert above.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main><!-- /.main -->
+</div><!-- /.layout -->
+
+</body>
+</html>
